@@ -1,0 +1,9 @@
+replicaCount: 1
+
+ingress:
+  enabled: true
+  className: nginx
+  host: wayfarer-staging.local
+
+env:
+  NODE_ENV: production

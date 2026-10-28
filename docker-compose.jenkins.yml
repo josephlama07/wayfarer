@@ -1,0 +1,12 @@
+services:
+  jenkins:
+    build:
+      context: ./jenkins
+      dockerfile: Dockerfile
+    image: personal-project/jenkins:2.516.3-lts-jdk17
+    network_mode: host
+    volumes: ["jenkins_home:/var/jenkins_home"]
+    restart: unless-stopped
+volumes:
+  jenkins_home:
+    name: jenkins-home

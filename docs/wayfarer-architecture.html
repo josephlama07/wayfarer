@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wayfarer Architecture</title>
+  <style>
+    :root{color-scheme:dark;--bg:#020617;--panel:#0f172a;--line:#1e293b;--muted:#94a3b8;--text:#e2e8f0;--cyan:#22d3ee;--green:#34d399;--violet:#a78bfa;--amber:#fbbf24;--rose:#fb7185;--orange:#fb923c}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+    .wrap{max-width:1440px;margin:auto;padding:32px 24px 40px}.eyebrow{color:var(--cyan);font-size:11px;letter-spacing:.16em;text-transform:uppercase}.title{display:flex;align-items:center;gap:12px;margin:8px 0 4px}.pulse{width:10px;height:10px;border-radius:50%;background:var(--green);box-shadow:0 0 0 0 rgba(52,211,153,.7);animation:pulse 2s infinite}@keyframes pulse{70%{box-shadow:0 0 0 9px transparent}100%{box-shadow:0 0 0 0 transparent}}h1{font-size:clamp(24px,4vw,42px);margin:0}p{color:var(--muted);margin:0}.diagram{margin-top:24px;border:1px solid var(--line);border-radius:14px;background:#060b18;overflow:auto;box-shadow:0 18px 50px #0008}.diagram svg{display:block;min-width:1100px;width:100%;height:auto}.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-top:18px}.card{background:linear-gradient(135deg,#0f172a,#0b1220);border:1px solid var(--line);border-radius:10px;padding:16px}.card-head{display:flex;align-items:center;gap:9px;color:var(--text);font-weight:700}.dot{width:8px;height:8px;border-radius:50%}.cyan{background:var(--cyan)}.green{background:var(--green)}.violet{background:var(--violet)}ul{margin:12px 0 0;padding-left:18px;color:var(--muted)}li{margin:6px 0}.footer{margin-top:20px;color:#64748b;font-size:11px}@media(max-width:800px){.cards{grid-template-columns:1fr}.wrap{padding:22px 14px}}
+  </style>
+</head>
+<body>
+  <main class="wrap">
+    <div class="eyebrow">Wayfarer / current system map</div>
+    <div class="title"><span class="pulse"></span><h1>Architecture & delivery flow</h1></div>
+    <p>Single-user Next.js MVP: browser-first state today, Docker-shaped runtime, Jenkins-gated immutable-image promotion.</p>
+    <section class="diagram" aria-label="Wayfarer architecture diagram">
+      <svg viewBox="0 0 1320 820" role="img" aria-labelledby="svg-title svg-desc">
+        <title id="svg-title">Wayfarer current architecture</title><desc id="svg-desc">Browser and UI flow into Next.js, localStorage, Docker Compose runtime, Jenkins pipeline, immutable image promotion, with optional future PostgreSQL and Prisma shown dashed.</desc>
+        <defs>
+          <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#1e293b" stroke-width=".6"/></pattern>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#64748b"/></marker>
+          <marker id="arrow-cyan" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#22d3ee"/></marker>
+          <marker id="arrow-amber" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0 0 10 5 0 10Z" fill="#fbbf24"/></marker>
+        </defs>
+        <rect width="1320" height="820" fill="url(#grid)"/>
+        <!-- flow lines behind nodes -->
+        <g fill="none" stroke-width="2" marker-end="url(#arrow)">
+          <path d="M250 145H350" stroke="#22d3ee" marker-end="url(#arrow-cyan)"/>
+          <path d="M510 145H610" stroke="#22d3ee" marker-end="url(#arrow-cyan)"/>
+          <path d="M430 205V260" stroke="#22d3ee" marker-end="url(#arrow-cyan)"/>
+          <path d="M690 205V260" stroke="#64748b"/>
+          <path d="M770 315H930" stroke="#fbbf24" marker-end="url(#arrow-amber)"/>
+          <path d="M1030 365V430" stroke="#fbbf24" marker-end="url(#arrow-amber)"/>
+          <path d="M1110 495H1190" stroke="#fbbf24" marker-end="url(#arrow-amber)"/>
+          <path d="M1110 555H1190" stroke="#64748b"/>
+          <path d="M430 555H300" stroke="#fb7185" stroke-dasharray="6 5"/>
+          <path d="M430 635H300" stroke="#a78bfa" stroke-dasharray="8 5"/>
+        </g>
+        <g font-size="11" fill="#94a3b8"><text x="280" y="136">interact</text><text x="525" y="136">render / events</text><text x="445" y="242">persist</text><text x="785" y="306">build</text><text x="1040" y="420">promote same SHA</text><text x="1120" y="486">rollback</text><text x="310" y="546">security boundary</text></g>
+        <!-- browser boundary -->
+        <rect x="42" y="62" width="728" height="226" rx="12" fill="none" stroke="#fb7185" stroke-width="1.5" stroke-dasharray="7 5"/><text x="62" y="86" fill="#fb7185" font-size="11">USER DEVICE / BROWSER SECURITY BOUNDARY</text>
+        <!-- nodes -->
+        <g font-family="inherit">
+          <rect x="70" y="112" width="180" height="66" rx="8" fill="#0f172a"/><rect x="70" y="112" width="180" height="66" rx="8" fill="rgba(30,41,59,.5)" stroke="#94a3b8" stroke-width="1.5"/><text x="90" y="140" fill="#e2e8f0" font-size="14">Browser</text><text x="90" y="160" fill="#94a3b8" font-size="10">user session / DOM</text>
+          <rect x="350" y="112" width="160" height="66" rx="8" fill="#0f172a"/><rect x="350" y="112" width="160" height="66" rx="8" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/><text x="370" y="140" fill="#e2e8f0" font-size="14">Wayfarer UI</text><text x="370" y="160" fill="#94a3b8" font-size="10">Next.js app / React</text>
+          <rect x="610" y="112" width="140" height="66" rx="8" fill="#0f172a"/><rect x="610" y="112" width="140" height="66" rx="8" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/><text x="630" y="140" fill="#e2e8f0" font-size="14">Client state</text><text x="630" y="160" fill="#94a3b8" font-size="10">localStorage</text>
+          <rect x="350" y="260" width="160" height="66" rx="8" fill="#0f172a"/><rect x="350" y="260" width="160" height="66" rx="8" fill="rgba(8,51,68,.4)" stroke="#22d3ee" stroke-width="1.5"/><text x="370" y="288" fill="#e2e8f0" font-size="14">App data</text><text x="370" y="308" fill="#94a3b8" font-size="10">projects / tasks / metrics</text>
+          <rect x="610" y="260" width="160" height="66" rx="8" fill="#0f172a"/><rect x="610" y="260" width="160" height="66" rx="8" fill="rgba(30,41,59,.5)" stroke="#94a3b8" stroke-width="1.5"/><text x="630" y="288" fill="#e2e8f0" font-size="14">Next runtime</text><text x="630" y="308" fill="#94a3b8" font-size="10">port 3000</text>
+          <!-- delivery -->
+          <rect x="60" y="430" width="250" height="150" rx="10" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="8 5"/><text x="80" y="454" fill="#fbbf24" font-size="11">LOCAL / DEV DELIVERY</text>
+          <rect x="80" y="475" width="190" height="66" rx="8" fill="#0f172a"/><rect x="80" y="475" width="190" height="66" rx="8" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.5"/><text x="100" y="503" fill="#e2e8f0" font-size="14">Docker Compose</text><text x="100" y="523" fill="#94a3b8" font-size="10">app container + optional db</text>
+          <rect x="430" y="430" width="250" height="150" rx="10" fill="none" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="8 5"/><text x="450" y="454" fill="#fbbf24" font-size="11">CI CONTROLLER (DOCKER)</text>
+          <rect x="450" y="475" width="210" height="66" rx="8" fill="#0f172a"/><rect x="450" y="475" width="210" height="66" rx="8" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.5"/><text x="470" y="503" fill="#e2e8f0" font-size="14">Jenkins</text><text x="470" y="523" fill="#94a3b8" font-size="10">install → quality → smoke</text>
+          <rect x="930" y="430" width="180" height="66" rx="8" fill="#0f172a"/><rect x="930" y="430" width="180" height="66" rx="8" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.5"/><text x="950" y="458" fill="#e2e8f0" font-size="14">Immutable image</text><text x="950" y="478" fill="#94a3b8" font-size="10">wayfarer:$GIT_COMMIT</text>
+          <rect x="1190" y="430" width="100" height="66" rx="8" fill="#0f172a"/><rect x="1190" y="430" width="100" height="66" rx="8" fill="rgba(120,53,15,.3)" stroke="#fbbf24" stroke-width="1.5"/><text x="1208" y="458" fill="#e2e8f0" font-size="13">Staging</text><text x="1208" y="478" fill="#94a3b8" font-size="10">Compose</text>
+          <rect x="1190" y="520" width="100" height="66" rx="8" fill="#0f172a"/><rect x="1190" y="520" width="100" height="66" rx="8" fill="rgba(30,41,59,.5)" stroke="#94a3b8" stroke-width="1.5"/><text x="1208" y="548" fill="#e2e8f0" font-size="13">Rollback</text><text x="1208" y="568" fill="#94a3b8" font-size="10">prior SHA</text>
+          <!-- future -->
+          <rect x="430" y="610" width="250" height="120" rx="10" fill="none" stroke="#a78bfa" stroke-width="1.5" stroke-dasharray="8 5"/><text x="450" y="634" fill="#a78bfa" font-size="11">OPTIONAL FUTURE PATH</text>
+          <rect x="450" y="652" width="100" height="52" rx="8" fill="#0f172a"/><rect x="450" y="652" width="100" height="52" rx="8" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.5"/><text x="465" y="682" fill="#e2e8f0" font-size="13">Prisma</text>
+          <rect x="580" y="652" width="80" height="52" rx="8" fill="#0f172a"/><rect x="580" y="652" width="80" height="52" rx="8" fill="rgba(76,29,149,.4)" stroke="#a78bfa" stroke-width="1.5"/><text x="591" y="682" fill="#e2e8f0" font-size="13">Postgres</text>
+        </g>
+        <!-- legend outside boundaries -->
+        <g transform="translate(60 770)" font-size="11"><text fill="#e2e8f0" x="0" y="0">LEGEND</text><circle cx="78" cy="-4" r="5" fill="#22d3ee"/><text x="90" y="0" fill="#94a3b8">frontend</text><circle cx="178" cy="-4" r="5" fill="#fbbf24"/><text x="190" y="0" fill="#94a3b8">delivery</text><circle cx="278" cy="-4" r="5" fill="#a78bfa"/><text x="290" y="0" fill="#94a3b8">future database</text><line x1="430" y1="-4" x2="470" y2="-4" stroke="#fb7185" stroke-dasharray="6 5"/><text x="480" y="0" fill="#94a3b8">security / boundary</text></g>
+      </svg>
+    </section>
+    <section class="cards">
+      <article class="card"><div class="card-head"><span class="dot cyan"></span>Runtime today</div><ul><li>Browser talks to the Next.js UI.</li><li>Application data remains in client localStorage.</li><li>Docker Compose serves the production-shaped app on port 3000.</li></ul></article>
+      <article class="card"><div class="card-head"><span class="dot green"></span>Delivery contract</div><ul><li>Feature branch / PR enters Jenkins gates.</li><li>Lint, typecheck, build, Compose validation, and Docker smoke test.</li><li>Promote the same immutable commit-SHA image; rollback by SHA.</li></ul></article>
+      <article class="card"><div class="card-head"><span class="dot violet"></span>Not deployed here</div><ul><li>No Kubernetes profile or cluster is part of the current system.</li><li>PostgreSQL is an optional educational Compose service.</li><li>Prisma + server-side persistence remain a dashed future path.</li></ul></article>
+    </section>
+    <div class="footer">Wayfarer architecture · current-state documentation · self-contained HTML/SVG · no external runtime dependencies</div>
+  </main>
+</body>
+</html>

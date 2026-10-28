@@ -1,0 +1,26 @@
+services:
+  app:
+    build: .
+    ports: ["3000:3000"]
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  db:
+    image: postgres:16.4-alpine3.20
+    profiles: ["db"]
+    environment:
+      POSTGRES_USER: wayfarer
+      POSTGRES_PASSWORD: wayfarer_dev_only
+      POSTGRES_DB: wayfarer
+    ports: ["127.0.0.1:5432:5432"]
+    volumes: ["postgres_data:/var/lib/postgresql/data"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U wayfarer -d wayfarer"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  postgres_data:

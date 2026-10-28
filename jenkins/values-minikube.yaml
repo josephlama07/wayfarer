@@ -1,0 +1,24 @@
+controller:
+  serviceType: NodePort
+  nodePort: 32080
+  agentListenerServiceType: ClusterIP
+  installPlugins:
+    - kubernetes
+    - workflow-aggregator
+    - git
+    - configuration-as-code
+    - docker-workflow
+  initializeOnce: true
+  overwritePlugins: false
+persistence:
+  enabled: true
+  size: 8Gi
+rbac:
+  create: true
+serviceAccount:
+  create: true
+serviceAccountAgent:
+  create: true
+agent:
+  jenkinsUrl: http://jenkins:8080
+  jenkinsTunnel: jenkins-agent:50000
