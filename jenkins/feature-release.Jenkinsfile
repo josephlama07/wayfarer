@@ -53,13 +53,12 @@ pipeline {
     stage('Restore feature database') {
       steps {
         withCredentials([
-          usernamePassword(credentialsId: 'postgres-setup-operator', usernameVariable: 'DB_ADMIN_USER', passwordVariable: 'DB_ADMIN_PASSWORD'),
-          usernamePassword(credentialsId: 'wayfarer-db-app', usernameVariable: 'APP_USER', passwordVariable: 'APP_PASSWORD')
+          usernamePassword(credentialsId: 'postgres-setup-operator', usernameVariable: 'DB_ADMIN_USER', passwordVariable: 'DB_ADMIN_PASSWORD')
         ]) {
           sh '''
             DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" FEATURE_NAME="$FEATURE_NAME_SAFE" TARGET_DB="$TARGET_DB" \
             DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
-            APP_USER="$APP_USER" APP_PASSWORD="$APP_PASSWORD" \
+            APP_USER="$DB_ADMIN_USER" APP_PASSWORD="$DB_ADMIN_PASSWORD" \
             BACKUP_DIR="$BACKUP_DIR" STATE_DIR="$STATE_DIR" LOG_DIR="$LOG_DIR" \
             scripts/db-restore.sh "$RELEASE_ID"
           '''
