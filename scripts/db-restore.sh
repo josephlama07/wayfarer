@@ -38,10 +38,14 @@ mkdir -p "$STATE_DIR" "$LOG_DIR"
 : > "$log_file"
 (
   printf 'restore_started_at=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-  PGPASSWORD="$DB_ADMIN_PASSWORD" pg_restore \
+  pg_restore \
     --host="$DB_HOST" --port="$DB_PORT" --username="$DB_ADMIN_USER" \
     --dbname="$TARGET_DB" --clean --if-exists --no-owner --no-privileges \
-    --exit-on-error "$(backup_path "$release_id")"
+    --exit-on-error --format=custom --file=- "$(backup_path "$release_id")" \
+    | sed '/^SET transaction_timeout = 0;$/d' \
+    | PGPASSWORD="$DB_ADMIN_PASSWORD" psql \
+        --host="$DB_HOST" --port="$DB_PORT" --username="$DB_ADMIN_USER" \
+        --dbname="$TARGET_DB" --set=ON_ERROR_STOP=1
   printf 'restore_completed_at=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 ) >"$log_file" 2>&1 &
 pid=$!
