@@ -56,7 +56,7 @@ pipeline {
           usernamePassword(credentialsId: 'postgres-setup-operator', usernameVariable: 'DB_ADMIN_USER', passwordVariable: 'DB_ADMIN_PASSWORD')
         ]) {
           sh '''
-            DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" FEATURE_NAME="${FEATURE_NAME_SAFE//-/_}" TARGET_DB="$TARGET_DB" \
+            DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" FEATURE_NAME="$(printf '%s' "$FEATURE_NAME_SAFE" | tr '-' '_')" TARGET_DB="$TARGET_DB" \
             DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
             APP_USER="$DB_ADMIN_USER" APP_PASSWORD="$DB_ADMIN_PASSWORD" \
             BACKUP_DIR="$BACKUP_DIR" STATE_DIR="$STATE_DIR" LOG_DIR="$LOG_DIR" \
