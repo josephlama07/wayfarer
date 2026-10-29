@@ -21,6 +21,7 @@ pipeline {
   stages {
     stage('Validate') {
       steps {
+        checkout scm
         script {
           if (!params.FEATURE_NAME?.trim()) { error('FEATURE_NAME is required') }
           if (!params.DB_HOST?.trim()) { error('DB_HOST is required') }
@@ -103,6 +104,9 @@ pipeline {
             --set image.repository="$IMAGE_REPOSITORY" \
             --set image.tag="$IMAGE_TAG" \
             --set image.pullPolicy=IfNotPresent \
+            --set env.DB_HOST="$DB_HOST" \
+            --set env.DB_PORT="$DB_PORT" \
+            --set env.DB_NAME="$TARGET_DB" \
             --atomic --wait --timeout 5m
           kubectl rollout status deployment/"$HELM_RELEASE"-wayfarer --namespace "$FEATURE_NAMESPACE" --timeout=180s
         '''
