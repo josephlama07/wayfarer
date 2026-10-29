@@ -11,6 +11,7 @@ require_feature_name
 [[ -n "$APP_PASSWORD" ]] || { printf 'APP_PASSWORD is required\n' >&2; exit 2; }
 
 printf 'Preparing target database: %s\n' "$TARGET_DB"
+if [[ "$APP_USER" != "$DB_ADMIN_USER" ]]; then
 psql_admin <<SQL
 DO \$\$
 BEGIN
@@ -22,6 +23,7 @@ BEGIN
 END
 \$\$;
 SQL
+fi
 
 if ! psql_admin --tuples-only --no-align --command="SELECT 1 FROM pg_database WHERE datname='${TARGET_DB}'" | grep -qx 1; then
   psql_admin --command="CREATE DATABASE ${TARGET_DB}"
