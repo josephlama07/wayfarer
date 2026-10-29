@@ -31,7 +31,7 @@ pipeline {
         sh '''
           set -eu
           if [ "$DB_ENGINE" = postgres ]; then
-            STATE_DIR=/var/lib/wayfarer/restore-state LOG_DIR=/var/log/wayfarer \
+            STATE_DIR=/var/jenkins_home/database-restore-state/postgres LOG_DIR=/var/jenkins_home/database-restore-logs/postgres \
               scripts/db-restore-status.sh "$RELEASE_ID"
           else
             STATE_DIR=/var/lib/mysql/restore-state LOG_DIR=/var/log/mysql-restore \

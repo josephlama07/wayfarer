@@ -10,9 +10,9 @@ pipeline {
   }
 
   environment {
-    BACKUP_DIR = '/opt/backup/postgres-backup'
-    STATE_DIR = '/var/lib/wayfarer/restore-state'
-    LOG_DIR = '/var/log/wayfarer'
+    BACKUP_DIR = '/var/jenkins_home/database-backups/postgres'
+    STATE_DIR = '/var/jenkins_home/database-restore-state/postgres'
+    LOG_DIR = '/var/jenkins_home/database-restore-logs/postgres'
   }
 
   stages {

@@ -9,7 +9,7 @@ pipeline {
   }
 
   environment {
-    BACKUP_DIR = '/opt/backup/postgres-backup'
+    BACKUP_DIR = '/var/jenkins_home/database-backups/postgres'
   }
 
   stages {
