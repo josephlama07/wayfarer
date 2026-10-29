@@ -6,7 +6,7 @@ script_dir="$(cd "$(dirname "$0")" && pwd)"
 source "$script_dir/db-common.sh"
 
 release_id="${1:?release-id is required}"
-require_feature_name
+require_target_db
 [[ -f "$(backup_path "$release_id")" ]] || { printf 'Dump not found for release: %s\n' "$release_id" >&2; exit 1; }
 [[ -n "$APP_PASSWORD" ]] || { printf 'APP_PASSWORD is required\n' >&2; exit 2; }
 

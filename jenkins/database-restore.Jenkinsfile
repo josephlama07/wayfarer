@@ -6,7 +6,7 @@ pipeline {
     string(name: 'DB_HOST', defaultValue: '', description: 'PostgreSQL hostname or RDS endpoint')
     string(name: 'DB_PORT', defaultValue: '5432', description: 'PostgreSQL port')
     string(name: 'SOURCE_DB', defaultValue: 'wayfarer_source', description: 'Source database name')
-    string(name: 'FEATURE_NAME', defaultValue: '', description: 'Required feature name; target DB becomes wayfarer_feature_<name>')
+    string(name: 'DB_NAME', defaultValue: '', description: 'Required target database name to restore into')
     string(name: 'RELEASE_ID', defaultValue: '', description: 'Existing dump identifier')
   }
 
@@ -25,9 +25,10 @@ pipeline {
       steps {
         script {
           if (!params.DB_HOST?.trim()) { error('DB_HOST is required') }
-          if (!params.FEATURE_NAME?.trim()) { error('FEATURE_NAME is required') }
+          if (!params.DB_NAME?.trim()) { error('DB_NAME is required') }
           if (!params.RELEASE_ID?.trim()) { error('RELEASE_ID is required') }
           env.RELEASE_ID = params.RELEASE_ID.trim()
+          env.TARGET_DB = params.DB_NAME.trim()
         }
         sh '''
           set -eu
@@ -51,13 +52,13 @@ pipeline {
             if [ "$DB_ENGINE" = postgres ]; then
               : "${APP_USER:?APP_USER is required for PostgreSQL restore}"
               : "${APP_PASSWORD:?APP_PASSWORD is required for PostgreSQL restore}"
-              DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" FEATURE_NAME="$FEATURE_NAME" \
+              DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" TARGET_DB="$TARGET_DB" \
               DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
               SOURCE_DB="$SOURCE_DB" BACKUP_DIR="$BACKUP_ROOT/postgres" \
               STATE_DIR="$STATE_ROOT/postgres" LOG_DIR="$LOG_ROOT/postgres" \
               scripts/db-restore.sh "$RELEASE_ID"
             else
-              DB_HOST="$DB_HOST" DB_PORT="${DB_PORT:-3306}" FEATURE_NAME="$FEATURE_NAME" \
+              DB_HOST="$DB_HOST" DB_PORT="${DB_PORT:-3306}" TARGET_DB="$TARGET_DB" \
               DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
               SOURCE_DB="$SOURCE_DB" BACKUP_DIR="$BACKUP_ROOT/mysql" \
               STATE_DIR="$STATE_ROOT/mysql" LOG_DIR="$LOG_ROOT/mysql" \

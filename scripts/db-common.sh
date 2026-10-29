@@ -27,6 +27,11 @@ require_feature_name() {
   require_identifier "$TARGET_DB"
 }
 
+require_target_db() {
+  [[ -n "$TARGET_DB" ]] || { printf 'TARGET_DB is required\n' >&2; exit 2; }
+  require_identifier "$TARGET_DB"
+}
+
 psql_admin() {
   PGPASSWORD="$DB_ADMIN_PASSWORD" psql --host="$DB_HOST" --port="$DB_PORT" --username="$DB_ADMIN_USER" --dbname="$DB_ADMIN_DB" --set=ON_ERROR_STOP=1 "$@"
 }
