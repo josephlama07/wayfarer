@@ -64,8 +64,10 @@ pipeline {
           '''
           timeout(time: 5, unit: 'MINUTES') {
             waitUntil {
-              def status = sh(script: "STATE_DIR='${env.STATE_DIR}' LOG_DIR='${env.LOG_DIR}' scripts/db-restore-status.sh '${env.RELEASE_ID}'", returnStatus: true)
-              return status == 0
+              script {
+                def status = sh(script: "STATE_DIR='${env.STATE_DIR}' LOG_DIR='${env.LOG_DIR}' scripts/db-restore-status.sh '${env.RELEASE_ID}'", returnStatus: true)
+                return status == 0
+              }
             }
           }
         }
