@@ -2,14 +2,15 @@ pipeline {
   agent { label 'database-utility' }
 
   parameters {
+    choice(name: 'DB_ENGINE', choices: ['postgres', 'mysql'], description: 'Database engine')
     string(name: 'DB_HOST', defaultValue: '', description: 'PostgreSQL hostname or RDS endpoint')
-    string(name: 'DB_PORT', defaultValue: '5432', description: 'PostgreSQL port')
+    string(name: 'DB_PORT', defaultValue: '5432', description: 'Database port')
     string(name: 'SOURCE_DB', defaultValue: 'wayfarer_source', description: 'Source database')
     string(name: 'RELEASE_ID', defaultValue: '', description: 'Dump identifier; defaults to build number')
   }
 
   environment {
-    BACKUP_DIR = '/var/jenkins_home/database-backups/postgres'
+    BACKUP_ROOT = '/var/jenkins_home/database-backups'
   }
 
   stages {
@@ -23,7 +24,14 @@ pipeline {
           if (!params.DB_HOST?.trim()) { error('DB_HOST is required') }
           env.RELEASE_ID = params.RELEASE_ID?.trim() ?: "build-${env.BUILD_NUMBER}"
         }
-        sh 'test -x scripts/db-dump.sh && bash -n scripts/db-dump.sh'
+        sh '''
+          set -eu
+          if [ "$DB_ENGINE" = postgres ]; then
+            test -x scripts/db-dump.sh && bash -n scripts/db-dump.sh
+          else
+            test -x scripts/mysql/mysql-dump.sh && bash -n scripts/mysql/mysql-dump.sh
+          fi
+        '''
       }
     }
 
@@ -32,9 +40,15 @@ pipeline {
         withCredentials([usernamePassword(credentialsId: 'postgres-setup-operator', usernameVariable: 'DB_ADMIN_USER', passwordVariable: 'DB_ADMIN_PASSWORD')]) {
           sh '''
             set -eu
-            DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" SOURCE_DB="$SOURCE_DB" \
-            DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
-            BACKUP_DIR="$BACKUP_DIR" scripts/db-dump.sh "$RELEASE_ID"
+            if [ "$DB_ENGINE" = postgres ]; then
+              DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" SOURCE_DB="$SOURCE_DB" \
+              DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
+              BACKUP_DIR="$BACKUP_ROOT/postgres" scripts/db-dump.sh "$RELEASE_ID"
+            else
+              DB_HOST="$DB_HOST" DB_PORT="${DB_PORT:-3306}" SOURCE_DB="$SOURCE_DB" \
+              DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
+              BACKUP_DIR="$BACKUP_ROOT/mysql" scripts/mysql/mysql-dump.sh "$RELEASE_ID"
+            fi
           '''
         }
       }

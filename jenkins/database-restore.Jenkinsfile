@@ -2,6 +2,7 @@ pipeline {
   agent { label 'database-utility' }
 
   parameters {
+    choice(name: 'DB_ENGINE', choices: ['postgres', 'mysql'], description: 'Database engine')
     string(name: 'DB_HOST', defaultValue: '', description: 'PostgreSQL hostname or RDS endpoint')
     string(name: 'DB_PORT', defaultValue: '5432', description: 'PostgreSQL port')
     string(name: 'FEATURE_NAME', defaultValue: '', description: 'Required feature name; target DB becomes wayfarer_feature_<name>')
@@ -9,9 +10,9 @@ pipeline {
   }
 
   environment {
-    BACKUP_DIR = '/var/jenkins_home/database-backups/postgres'
-    STATE_DIR = '/var/jenkins_home/database-restore-state/postgres'
-    LOG_DIR = '/var/jenkins_home/database-restore-logs/postgres'
+    BACKUP_ROOT = '/var/jenkins_home/database-backups'
+    STATE_ROOT = '/var/jenkins_home/database-restore-state'
+    LOG_ROOT = '/var/jenkins_home/database-restore-logs'
   }
 
   stages {
@@ -27,7 +28,14 @@ pipeline {
           if (!params.RELEASE_ID?.trim()) { error('RELEASE_ID is required') }
           env.RELEASE_ID = params.RELEASE_ID.trim()
         }
-        sh 'test -x scripts/db-restore.sh && bash -n scripts/db-restore.sh'
+        sh '''
+          set -eu
+          if [ "$DB_ENGINE" = postgres ]; then
+            test -x scripts/db-restore.sh && bash -n scripts/db-restore.sh
+          else
+            test -x scripts/mysql/mysql-restore.sh && bash -n scripts/mysql/mysql-restore.sh
+          fi
+        '''
       }
     }
 
@@ -39,12 +47,21 @@ pipeline {
         ]) {
           sh '''
             set -eu
-            DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" FEATURE_NAME="$FEATURE_NAME" \
-            DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
-            APP_USER="$APP_USER" APP_PASSWORD="$APP_PASSWORD" \
-            SOURCE_DB="${SOURCE_DB:-wayfarer_source}" BACKUP_DIR="$BACKUP_DIR" \
-            STATE_DIR="$STATE_DIR" LOG_DIR="$LOG_DIR" \
-            scripts/db-restore.sh "$RELEASE_ID"
+            if [ "$DB_ENGINE" = postgres ]; then
+              : "${APP_USER:?APP_USER is required for PostgreSQL restore}"
+              : "${APP_PASSWORD:?APP_PASSWORD is required for PostgreSQL restore}"
+              DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" FEATURE_NAME="$FEATURE_NAME" \
+              DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
+              SOURCE_DB="$SOURCE_DB" BACKUP_DIR="$BACKUP_ROOT/postgres" \
+              STATE_DIR="$STATE_ROOT/postgres" LOG_DIR="$LOG_ROOT/postgres" \
+              scripts/db-restore.sh "$RELEASE_ID"
+            else
+              DB_HOST="$DB_HOST" DB_PORT="${DB_PORT:-3306}" FEATURE_NAME="$FEATURE_NAME" \
+              DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
+              SOURCE_DB="$SOURCE_DB" BACKUP_DIR="$BACKUP_ROOT/mysql" \
+              STATE_DIR="$STATE_ROOT/mysql" LOG_DIR="$LOG_ROOT/mysql" \
+              scripts/mysql/mysql-restore.sh "$RELEASE_ID"
+            fi
           '''
         }
       }

@@ -1,0 +1,7 @@
+FROM jenkins/jenkins:2.580.1-jdk25
+
+USER root
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends postgresql-client-16 default-mysql-client bash gzip ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+USER jenkins

@@ -34,7 +34,7 @@ pipeline {
             STATE_DIR=/var/jenkins_home/database-restore-state/postgres LOG_DIR=/var/jenkins_home/database-restore-logs/postgres \
               scripts/db-restore-status.sh "$RELEASE_ID"
           else
-            STATE_DIR=/var/lib/mysql/restore-state LOG_DIR=/var/log/mysql-restore \
+            STATE_DIR=/var/jenkins_home/database-restore-state/mysql LOG_DIR=/var/jenkins_home/database-restore-logs/mysql \
               scripts/mysql/mysql-status.sh "$RELEASE_ID"
           fi
         '''
