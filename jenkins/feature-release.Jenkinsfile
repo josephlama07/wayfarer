@@ -33,7 +33,7 @@ pipeline {
           env.IMAGE = "${env.IMAGE_REPOSITORY}:${params.IMAGE_TAG.trim()}"
         }
         sh 'bash -n scripts/db-dump.sh scripts/db-restore.sh scripts/db-restore-status.sh scripts/db-verify.sh && test -x scripts/db-verify.sh'
-        sh 'command -v pg_isready && command -v pg_dump && command -v pg_restore && command -v psql && command -v kubectl && command -v helm'
+        sh 'pg_isready --version; pg_dump --version; pg_restore --version; psql --version; kubectl version --client=true; helm version --short'
       }
     }
 
