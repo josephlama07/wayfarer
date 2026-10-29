@@ -5,6 +5,7 @@ pipeline {
     choice(name: 'DB_ENGINE', choices: ['postgres', 'mysql'], description: 'Database engine')
     string(name: 'DB_HOST', defaultValue: '', description: 'PostgreSQL hostname or RDS endpoint')
     string(name: 'DB_PORT', defaultValue: '5432', description: 'PostgreSQL port')
+    string(name: 'SOURCE_DB', defaultValue: 'wayfarer_source', description: 'Source database name')
     string(name: 'FEATURE_NAME', defaultValue: '', description: 'Required feature name; target DB becomes wayfarer_feature_<name>')
     string(name: 'RELEASE_ID', defaultValue: '', description: 'Existing dump identifier')
   }

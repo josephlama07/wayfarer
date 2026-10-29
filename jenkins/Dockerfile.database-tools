@@ -1,7 +1,13 @@
 FROM jenkins/jenkins:2.580.1-jdk25
 
 USER root
+ARG KUBECTL_VERSION=v1.34.0
+ARG HELM_VERSION=v3.16.4
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends postgresql-client-16 default-mysql-client bash gzip ca-certificates \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends postgresql-client default-mysql-client bash gzip ca-certificates curl \
+    && curl -fsSL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/amd64/kubectl" -o /usr/local/bin/kubectl \
+    && chmod +x /usr/local/bin/kubectl \
+    && curl -fsSL "https://get.helm.sh/helm-${HELM_VERSION}-linux-amd64.tar.gz" | tar -xz -C /tmp \
+    && mv /tmp/linux-amd64/helm /usr/local/bin/helm \
+    && rm -rf /tmp/linux-amd64 /var/lib/apt/lists/*
 USER jenkins
