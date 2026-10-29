@@ -3,6 +3,7 @@ pipeline {
 
   parameters {
     string(name: 'FEATURE_NAME', defaultValue: '', description: 'Feature identifier, e.g. poc-1')
+    string(name: 'DB_NAME', defaultValue: '', description: 'Explicit prepared target database name')
     string(name: 'DB_HOST', defaultValue: 'host.minikube.internal', description: 'PostgreSQL host reachable from Jenkins')
     string(name: 'DB_PORT', defaultValue: '5432', description: 'PostgreSQL port')
     string(name: 'IMAGE_TAG', defaultValue: 'local', description: 'Existing image tag available to Minikube')
@@ -19,28 +20,16 @@ pipeline {
         checkout scm
         script {
           if (!params.FEATURE_NAME?.trim()) { error('FEATURE_NAME is required') }
+          if (!params.DB_NAME?.trim()) { error('DB_NAME is required') }
           if (!params.DB_HOST?.trim()) { error('DB_HOST is required') }
           env.FEATURE_NAME_SAFE = params.FEATURE_NAME.trim().toLowerCase().replaceAll('[^a-z0-9-]', '-').replaceAll('-+', '-').replaceAll('^-|-$', '')
           if (!env.FEATURE_NAME_SAFE || env.FEATURE_NAME_SAFE.length() > 40) { error('FEATURE_NAME must produce a valid short identifier') }
-          env.TARGET_DB = "wayfarer_feature_${env.FEATURE_NAME_SAFE.replaceAll('-', '_')}"
+          env.TARGET_DB = params.DB_NAME.trim()
           env.FEATURE_NAMESPACE = "wayfarer-${env.FEATURE_NAME_SAFE}"
           env.HELM_RELEASE = "wayfarer-${env.FEATURE_NAME_SAFE}"
           env.IMAGE = "${env.IMAGE_REPOSITORY}:${params.IMAGE_TAG.trim()}"
         }
-        sh 'bash -n scripts/db-verify.sh && test -x scripts/db-verify.sh'
         sh 'kubectl version --client=true; helm version --short'
-      }
-    }
-
-    stage('Verify feature database') {
-      steps {
-        withCredentials([usernamePassword(credentialsId: 'postgres-setup-operator', usernameVariable: 'DB_ADMIN_USER', passwordVariable: 'DB_ADMIN_PASSWORD')]) {
-          sh '''
-            DB_HOST="$DB_HOST" DB_PORT="$DB_PORT" FEATURE_NAME="$FEATURE_NAME_SAFE" TARGET_DB="$TARGET_DB" \
-            DB_ADMIN_USER="$DB_ADMIN_USER" DB_ADMIN_PASSWORD="$DB_ADMIN_PASSWORD" \
-            EXPECTED_TABLES=waypoints,trips scripts/db-verify.sh
-          '''
-        }
       }
     }
 

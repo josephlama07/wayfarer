@@ -4,7 +4,7 @@ set -euo pipefail
 script_dir="$(cd "$(dirname "$0")" && pwd)"
 source "$script_dir/db-common.sh"
 
-require_feature_name
+require_target_db
 expected_tables="${EXPECTED_TABLES:-waypoints,trips}"
 PGPASSWORD="$DB_ADMIN_PASSWORD" psql \
   --host="$DB_HOST" --port="$DB_PORT" --username="$DB_ADMIN_USER" \

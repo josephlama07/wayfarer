@@ -4,8 +4,8 @@ pipeline {
   parameters {
     choice(name: 'DB_ENGINE', choices: ['postgres', 'mysql'], description: 'Database engine')
     string(name: 'RELEASE_ID', defaultValue: '', description: 'Dump/release identifier to clean up')
-    string(name: 'FEATURE_NAME', defaultValue: '', description: 'Feature name used to derive the target database')
-    booleanParam(name: 'DROP_TARGET_DB', defaultValue: false, description: 'Also drop the derived target database')
+    string(name: 'DB_NAME', defaultValue: '', description: 'Explicit target database name')
+    booleanParam(name: 'DROP_TARGET_DB', defaultValue: false, description: 'Also drop the explicitly supplied target database')
     string(name: 'DB_HOST', defaultValue: '', description: 'Required only when dropping the target database')
     string(name: 'DB_PORT', defaultValue: '5432', description: 'PostgreSQL port')
   }
@@ -25,10 +25,10 @@ pipeline {
       steps {
         script {
           if (!params.RELEASE_ID?.trim()) { error('RELEASE_ID is required') }
-          if (params.DROP_TARGET_DB && !params.FEATURE_NAME?.trim()) { error('FEATURE_NAME is required when DROP_TARGET_DB is true') }
+          if (params.DROP_TARGET_DB && !params.DB_NAME?.trim()) { error('DB_NAME is required when DROP_TARGET_DB is true') }
           if (params.DROP_TARGET_DB && !params.DB_HOST?.trim()) { error('DB_HOST is required when DROP_TARGET_DB is true') }
           env.RELEASE_ID = params.RELEASE_ID.trim()
-          env.TARGET_DB = params.FEATURE_NAME?.trim() ? "wayfarer_feature_${params.FEATURE_NAME.trim()}" : ''
+          env.TARGET_DB = params.DB_NAME?.trim() ?: ''
         }
         sh '''
           set -eu
