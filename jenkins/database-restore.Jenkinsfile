@@ -44,7 +44,7 @@ pipeline {
       steps {
         withCredentials([
           usernamePassword(credentialsId: 'postgres-setup-operator', usernameVariable: 'DB_ADMIN_USER', passwordVariable: 'DB_ADMIN_PASSWORD'),
-          usernamePassword(credentialsId: 'wayfarer-db-app', usernameVariable: 'APP_USER', passwordVariable: 'APP_PASSWORD')
+          usernamePassword(credentialsId: 'postgres-setup-operator', usernameVariable: 'APP_USER', passwordVariable: 'APP_PASSWORD')
         ]) {
           sh '''
             set -eu
