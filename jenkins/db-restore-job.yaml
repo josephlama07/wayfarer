@@ -1,0 +1,39 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: wayfarer-db-restore-__BUILD_NUMBER__
+  namespace: __JOB_NAMESPACE__
+  labels:
+    app.kubernetes.io/name: wayfarer-db-restore
+    app.kubernetes.io/part-of: wayfarer
+spec:
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 86400
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: wayfarer-db-restore
+        app.kubernetes.io/part-of: wayfarer
+    spec:
+      restartPolicy: Never
+      containers:
+        - name: restore
+          image: postgres:16-alpine
+          envFrom:
+            - secretRef:
+                name: wayfarer-db-admin
+          env:
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: wayfarer-db-admin
+                  key: DB_ADMIN_PASSWORD
+            - name: TARGET_DB
+              value: wayfarer_feature_local
+          command: ["/bin/sh", "-ec"]
+          args:
+            - |
+              set -o pipefail
+              export SOURCE_URL="postgresql://$(DB_ADMIN_USER):$(PGPASSWORD)@$(DB_HOST):$(DB_PORT)/$(SOURCE_DB)"
+              export TARGET_URL="postgresql://$(DB_ADMIN_USER):$(PGPASSWORD)@$(DB_HOST):$(DB_PORT)/$(TARGET_DB)"
+              pg_dump --no-owner --no-privileges --clean --if-exists "$SOURCE_URL" | psql --set=ON_ERROR_STOP=1 "$TARGET_URL"
