@@ -74,6 +74,46 @@ pipeline {
               printf 'Database created: %s\n' "$TARGET_DB"
             fi
 
+            psql \
+              --host="$DB_HOST" \
+              --port="$DB_PORT" \
+              --username="$DB_ADMIN_USER" \
+              --dbname="$DB_ADMIN_DB" \
+              --set=ON_ERROR_STOP=1 \
+              --command="ALTER DATABASE $TARGET_DB OWNER TO $DB_ADMIN_USER"
+
+            psql \
+              --host="$DB_HOST" \
+              --port="$DB_PORT" \
+              --username="$DB_ADMIN_USER" \
+              --dbname="$DB_ADMIN_DB" \
+              --set=ON_ERROR_STOP=1 \
+              --command="GRANT CONNECT, TEMPORARY ON DATABASE $TARGET_DB TO $DB_ADMIN_USER"
+
+            psql \
+              --host="$DB_HOST" \
+              --port="$DB_PORT" \
+              --username="$DB_ADMIN_USER" \
+              --dbname="$TARGET_DB" \
+              --set=ON_ERROR_STOP=1 \
+              --command="GRANT USAGE, CREATE ON SCHEMA public TO $DB_ADMIN_USER"
+
+            psql \
+              --host="$DB_HOST" \
+              --port="$DB_PORT" \
+              --username="$DB_ADMIN_USER" \
+              --dbname="$TARGET_DB" \
+              --set=ON_ERROR_STOP=1 \
+              --command="ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE, TRUNCATE, REFERENCES, TRIGGER ON TABLES TO $DB_ADMIN_USER"
+
+            psql \
+              --host="$DB_HOST" \
+              --port="$DB_PORT" \
+              --username="$DB_ADMIN_USER" \
+              --dbname="$TARGET_DB" \
+              --set=ON_ERROR_STOP=1 \
+              --command="ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT USAGE, SELECT, UPDATE ON SEQUENCES TO $DB_ADMIN_USER"
+
             verified="$(psql \
               --host="$DB_HOST" \
               --port="$DB_PORT" \
