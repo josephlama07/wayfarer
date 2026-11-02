@@ -42,6 +42,34 @@ spec:
       steps { sh 'npm ci' }
     }
 
+    stage('Application metadata') {
+      steps {
+        sh 'npm run check:metadata'
+        sh 'npm run test:metadata'
+      }
+    }
+
+    stage('PR changelog policy') {
+      when { changeRequest() }
+      steps { sh 'npm run check:pr-changelog' }
+    }
+
+    stage('Release metadata') {
+      when {
+        allOf {
+          branch 'main'
+          expression {
+            return !!(env.RELEASE_TAG?.trim() || env.GIT_TAG?.trim())
+          }
+        }
+      }
+      steps {
+        sh '''
+          RELEASE_TAG="${RELEASE_TAG:-$GIT_TAG}" npm run check:release
+        '''
+      }
+    }
+
     stage('Quality') {
       steps {
         sh 'npm run lint'
